@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
 
-#word = raw_input("Enter word: ")
-word = "escuchar"
+word = raw_input("Enter word: ")
+# word = "hablar"
 
 # some RegExp to fetch the sections I need
 # specific sections have IDs like so: id='esen:18465'
@@ -102,26 +102,29 @@ def scrape(word):
     all_defs = soup.findAll("tr", {"id" : regex})
     for d in all_defs:
       orig_word = d.find("td", {"class" : "FrWrd"}).find("strong").get_text()
-      print "EN=====> ", orig_word
-      print "\n"
-      transl_word = d.find("td", {"class" : "ToWrd"}).get_text()
-      print "=====>ES ", transl_word
-      print "\n"
-      simple_def = d.findAll("td")[1].get_text()
-      print "#####DEF##### ", simple_def
-      print "\n"
-      print "-------------------------------------------"
-      print "\n"
-      #def_list.append(definition)
-    #return def_list
+      # getting rid of the '=>' arrow (that is some hidden unicode symbol)
+      orig_word = re.sub("[^\w]+", "", orig_word)
+      # the 'ToWrd' <td> contains information about translation and POS, all in a str
+      transl_text = d.find("td", {"class" : "ToWrd"}).get_text()
+      #pattern = re.compile(r"(?<='ToWrd' >\s).*") # trying to patternmatch the pieces
+
+      # TODO: this is erroneous. if the translation consists of more than one word,
+      #       it slices incorrectly!!!!!! needs a fix.
+
+      # the definition is always the second entry <td> (see example HTML above)
+      # it does NOT have a class or id associated, so I get it through slicing
+      # it alsow starts with a whitespace char, which we don't need, so: lstrip()
+      simple_def = d.findAll("td")[1].get_text().lstrip()
+      if word == orig_word or word + "se" == orig_word: #reflexive form
+        # add all info to a list of the following order:
+        def_list.append([orig_word, simple_def, transl_text])
+    return def_list
   except:
     error_msg = "No definitions found. Please double check the word you entered."
     return error_msg
 
-#def_list = scrape(word)
+def_list = scrape(word)
 
-print scrape(word)
-
-# for i in def_list:
-#   print i
-#   print
+for i in def_list:
+  print i
+  print

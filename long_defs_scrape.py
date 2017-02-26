@@ -1,34 +1,53 @@
+# -*- coding: utf-8 -*-
+# uses python 3
 # getting complex definitions from wordreference
+import re
 import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
 
-word = raw_input("Enter word: ")
-#word = "escuchar"
+word = input("Enter word: ")
+
+# some RegExp to fetch the sections I need
+# specific sections have IDs like so: id='esen:18465'
+regex = re.compile(r"esen:\d+")
 
 def scrape(word):
-  """Scrapes the definitions of a specified word from the wordreference website.
+  """Gets the definitions of a specified word from the wordreference website.
 
   :param word: word to be queried
   :type word: str
   :return: all definitions for the given word
-  :rtype: list('unicode', 'unicode')
+  :rtype: list([str, str, str], [str, str, str])
   """
-  # the URL is built in the format 'baseURL/word'
-  page_url = "http://www.wordreference.com/definicion/" + word
+  # the URL for the es-en WR dict is built in the format 'baseURL/translation.asp?=word'
+  page_url = "http://www.wordreference.com/es/en/translation.asp?spen=" + word
   try:
     page = requests.get(page_url)
-    #print page
     soup = BeautifulSoup(page.text, "html.parser")
-    #print "#######################################"
-    #print html
-    # creating a bucket for the definitions
+    # creating a bucket for the simple definitions
     def_list = list()
-    # the definitions are nested in an <ol> class='entry' and its <li> elements
-    all_definitions = soup.find("ol", {"class" : "entry"})
-    for d in all_definitions.findAll("li"):
-      definition = d.get_text()
-      def_list.append(definition)
+
+    # match all the sections with numbered word IDs
+    all_defs = soup.findAll("tr", {"id" : regex})
+    for d in all_defs:
+
+      orig_word = d.find("td", {"class" : "FrWrd"}).find("strong").get_text()
+      # getting rid of the '⇒' arrow (that is some hidden unicode symbol)
+      if orig_word.find(u"⇒") != -1:
+        orig_word = re.sub(r"[^\w]+", "", orig_word)
+
+      # the simple definition is always the second entry <td> (see example HTML above)
+      # it does NOT have a class or id associated, so I get it through slicing
+      # it also starts with a whitespace char, which we don't need, so: lstrip()
+      simple_def = d.findAll("td")[1].get_text().lstrip()
+
+      # the 'ToWrd' <td> contains information about translation and POS, all in a str
+      # for now I'm taking it all and we can later post-process
+      transl_text = d.find("td", {"class" : "ToWrd"}).get_text()
+
+      # add all info to a list of the following order:
+      def_list.append([orig_word, simple_def, transl_text])
     return def_list
   except:
     error_msg = "No definitions found. Please double check the word you entered."
@@ -37,5 +56,5 @@ def scrape(word):
 def_list = scrape(word)
 
 for i in def_list:
-  print i
-  print
+  pprint(i)
+  print()
