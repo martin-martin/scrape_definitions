@@ -41,7 +41,7 @@ def scrape(word):
       # TODO: this is erroneous. if the translation consists of more than one word,
       #       it slices incorrectly!!!!!! needs a fix.
 
-      # the definition is always the second entry <td> (see example HTML structure in 'sample.html')
+      # the definition is always the second entry <td> (see example HTML structure in 'sample.md')
       # it does NOT have a class or id associated, so I get it through slicing
       # it alsow starts with a whitespace char, which we don't need, so: lstrip()
       simple_def = d.findAll("td")[1].get_text().lstrip()
