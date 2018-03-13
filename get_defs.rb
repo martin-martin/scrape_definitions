@@ -33,7 +33,7 @@ def scrape(word, language)
       # the actual word returned by the query
       orig_word = definition.css("strong").text
 
-      # the simple definition is always the second entry <td> (see example HTML above)
+      # the simple definition is always the second entry <td> (see example HTML structure in 'sample.md')
       # it does NOT have a class or id associated, so I get it through slicing
       # it also starts with a whitespace char, which we don't need, so: lstrip()
       simple_def = definition.css("td")[1].text.lstrip!
