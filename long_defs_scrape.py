@@ -37,7 +37,7 @@ def scrape(word):
       if orig_word.find(u"⇒") != -1:
         orig_word = re.sub(r"[^\w]+", "", orig_word)
 
-      # the simple definition is always the second entry <td> (see example HTML above)
+      # the simple definition is always the second entry <td> (see example HTML structure in 'sample.md')
       # it does NOT have a class or id associated, so I get it through slicing
       # it also starts with a whitespace char, which we don't need, so: lstrip()
       simple_def = d.findAll("td")[1].get_text().lstrip()
